@@ -1,0 +1,112 @@
+/*
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id "java"
+    id "com.github.johnrengelman.shadow" version "6.1.0"
+    id "jacoco"
+    id "com.google.cloud.tools.jib" version "3.0.0"
+    id "org.sonarqube" version "3.1.1"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    gradlePluginPortal()
+}
+
+dependencies {
+    compileOnly "com.google.auto.value:auto-value-annotations:1.8"
+    annotationProcessor "com.google.auto.value:auto-value:1.8"
+
+    implementation "com.google.guava:guava:30.1-jre"
+    implementation "com.google.code.gson:gson:2.8.6"
+
+    implementation "com.google.protobuf:protobuf-java:3.15.0"
+    implementation "com.google.protobuf:protobuf-java-util:3.15.0"
+
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+
+    implementation "org.checkerframework:checker-compat-qual:2.5.5"
+
+    implementation "com.google.flogger:flogger:0.6"
+    implementation "com.google.flogger:google-extensions:0.6"
+    runtimeOnly "com.google.flogger:flogger-system-backend:0.6"
+
+    implementation "org.apache.beam:beam-sdks-java-core:2.28.0"
+    implementation "org.apache.beam:beam-sdks-java-io-google-cloud-platform:2.28.0"
+    runtimeOnly "org.apache.beam:beam-runners-google-cloud-dataflow-java:2.28.0"
+
+    runtimeOnly "org.slf4j:slf4j-api:1.7.25"
+    runtimeOnly "org.slf4j:slf4j-jdk14:1.7.25"
+
+    testImplementation "org.skyscreamer:jsonassert:1.5.0"
+    testImplementation "com.squareup.okhttp3:mockwebserver:4.9.0"
+    testImplementation "junit:junit:4.13.1"
+    testImplementation "org.hamcrest:hamcrest-all:1.3"
+    testImplementation "org.mockito:mockito-all:1.10.19"
+    testImplementation "com.google.truth:truth:1.1"
+    testImplementation "com.google.truth.extensions:truth-java8-extension:1.1"
+    testImplementation "org.apache.beam:beam-runners-direct-java:2.28.0"
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+shadowJar {
+    zip64 = true
+    mergeServiceFiles()
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "com.google.cloud.solutions.bqtodatadog.BigQueryToDatadogPipeline"
+        attributes "Implementation-Title": "bigquery-to-datadog-pipeline"
+        attributes "Implementation-Version": "0.1"
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.6"
+}
+
+test {
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        csv.enabled false
+        html.enabled true
+        xml.enabled true
+    }
+    classDirectories.setFrom(
+            fileTree(dir: "build/classes/java/main")
+                    .filter({ file -> !file.name.startsWith("AutoValue_") })
+    )
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "crashlytics-logs-to-datadog"
+        property "sonar.organization", "googlecloudplatform"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.junit.reportsPath", "build/test-results/*/TEST-*.xml"
+    }
+}

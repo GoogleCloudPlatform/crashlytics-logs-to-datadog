@@ -1,0 +1,59 @@
+{
+  "name": "Export Firebase Crashlytics logs from BigQuery to Datadog",
+  "description": "An Apache Beam batch pipeline that reads Crashlytics logs in BigQuery table, batches to 5Mb and sends to Datadog Logs API.",
+  "parameters": [
+    {
+      "name": "datadogApiKey",
+      "label": "Datadog API Key to send data using API.",
+      "helpText": "Datadog API Key to send data using API. Refer: https://docs.datadoghq.com/account_management/api-app-keys/#api-keys"
+    },
+    {
+      "name": "datadogEndpoint",
+      "label": "The Datadog Endpoint URI",
+      "helpText": "The Datadog Logs Endpoint to use Defaults to: \"https://http-intake.logs.datadoghq.com/v1/input\"",
+      "isOptional" : true
+    },
+    {
+      "name": "datadogSource",
+      "label": "The log source value",
+      "helpText": "The \"ddsource\" value to use. Default: \"crashlytics-bigquery\"",
+      "isOptional": true
+    },
+    {
+      "name": "datadogTags",
+      "label": "The log tags value",
+      "helpText": "The \"ddtags\" value to use. Default: \"user:crashlytics-pipeline\"",
+      "isOptional": true
+    },
+    {
+      "name": "datadogLogHostname",
+      "label": "The log hostname value",
+      "helpText": "The \"hostname\" value to use. Default: \"crashlytics\"",
+      "isOptional": true
+    },
+    {
+      "name": "sourceBigQueryTableId",
+      "label": "Crashlytics BigQuery Table",
+      "helpText": "Provide the fully qualified BigQuery table name in format as <projectId>:<datasetId>.<tableId>$<partitionDate>",
+      "isOptional": true
+    },
+    {
+      "name": "bigQuerySqlQuery",
+      "label": "The BigQuery SQL query results to send to Datadog.",
+      "helpText": "Provide a query in standardSQL dialect.",
+      "isOptional": true
+    },
+    {
+      "name": "shardCount",
+      "label": "Number of parallel callers to Datadog API",
+      "helpText": "Using a higher value will result in high QPS on Datadog side. (Default: 10)",
+      "isOptional": true
+    },
+    {
+      "name": "preserveNullValues",
+      "label": "Serialize \"null\" values in BigQuery rows.",
+      "helpText": "Serialize \"null\" values in BigQuery rows. (Default: false)",
+      "isOptional": true
+    }
+  ]
+}
