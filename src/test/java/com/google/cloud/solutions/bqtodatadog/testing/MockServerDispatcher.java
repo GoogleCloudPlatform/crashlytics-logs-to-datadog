@@ -22,6 +22,9 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+import com.google.common.net.HttpHeaders;
+import com.google.common.net.MediaType;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
@@ -58,11 +61,12 @@ public class MockServerDispatcher extends Dispatcher {
     checkState(!closed, "dispatcher should not be closed.");
 
     assertThat(recordedRequest.getHeaders().get("DD-API-KEY")).isEqualTo(expectedDdApiKey);
-    assertThat(recordedRequest.getHeader("Content-Type")).startsWith("application/json");
+    assertThat(recordedRequest.getHeader(HttpHeaders.CONTENT_TYPE))
+        .startsWith(MediaType.JSON_UTF_8.type());
 
     try {
-
-      boolean requestGzip = "gzip".equals(recordedRequest.getHeaders().get("Content-Encoding"));
+      boolean requestGzip =
+          "gzip".equals(recordedRequest.getHeaders().get(HttpHeaders.CONTENT_ENCODING));
 
       assertThat(requestGzip).isEqualTo(isGzip);
 
@@ -89,8 +93,12 @@ public class MockServerDispatcher extends Dispatcher {
 
     @Override
     public InputStream openStream() throws IOException {
-      InputStream requestBodyStream = recordedRequest.getBody().inputStream();
-      return (isGzip) ? new GZIPInputStream(requestBodyStream) : requestBodyStream;
+      try {
+        InputStream requestBodyStream = recordedRequest.getBody().inputStream();
+        return (isGzip) ? new GZIPInputStream(requestBodyStream) : requestBodyStream;
+      } catch (NullPointerException npe) {
+        return new ByteArrayInputStream(new byte[0]);
+      }
     }
   }
 }
